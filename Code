@@ -1,0 +1,140 @@
+#include <M5Core2.h>
+float gyroX2 = 0.0F; // declaring and initializing variables
+float gyroY2 = 0.0F;
+float gyroZ2 = 0.0F;
+bool Alarm=0;
+String PinCode="";
+String PinCode2="";
+float PinCodeCtr=0;
+void setup(){
+  M5.begin(); // start the m5stack
+  M5.IMU.Init(); // start the gyroscope function
+    M5.Lcd.setTextSize(2);
+M5.Lcd.drawString("Please Setup your PinCode", 10,20); // Prompt the user to enter the pincode
+M5.Lcd.setTextSize(3);
+   while(PinCode.length() < 4){ // keep repeating while the pincode is less than 4 digits
+if (M5.BtnA.wasPressed()){ // if button A is pressed add 0 to the pincode and print the new pincode
+  PinCode =PinCode+"0"; 
+  M5.Lcd.drawString(PinCode, 120,120);
+}
+
+if (M5.BtnB.wasPressed()){ // if button B is pressed add 1 to the pincode and print the new pincode
+  PinCode =PinCode+"1";
+  M5.Lcd.drawString(PinCode, 120,120);
+}
+  if (M5.BtnC.wasPressed()){ // if button C is pressed add 2 to the pincode and print the new pincode
+  PinCode =PinCode+"2";
+  M5.Lcd.drawString(PinCode, 120,120);
+ }
+ M5.update(); // update the button inputs
+  }
+  delay(1000); // wait 1 second so the user can see the pincode they entered
+  M5.Lcd.fillScreen(BLACK);
+}
+void loop() {  
+  M5.IMU.getGyroData(&gyroX2, &gyroY2, &gyroZ2); // Get the values of the gyroscope this will always keep updating because its in the void loop
+if(gyroX2 > 150 && gyroY2 > 150 && gyroZ2 > 150){ // set of conditions to determine if sufficient movement has happened to turn on the alarm
+    Alarm = 1;
+  }
+  else if (gyroX2 > 120 && gyroY2 > 120){  // to ensure the sensitivity of the movement if it is only moved in 2 directions
+    Alarm = 1;
+}
+  else if (gyroX2 > 120 && gyroZ2 > 120){  // to ensure the sensitivity of the movement if it is only moved in 2 directions
+      Alarm = 1;
+     }
+   else if (gyroZ2 > 120 && gyroY2 > 120){  // to ensure the sensitivity of the movement if it is only moved in 2 directions
+      Alarm = 1;
+}
+M5.Lcd.setTextSize(2);
+ M5.Lcd.drawString("Alarm System Online", 50, 20); // Tell the user that the alarm is armed
+ M5.Lcd.setTextSize(3);
+if (Alarm==1){  // if the alarm turns on the following will happen
+  M5.Lcd.fillScreen(RED); // the screen will turn red
+  M5.Lcd.drawString("Alarm on", 90, 20); // a message will appear saying that the alarm is on
+  M5.Axp.SetLDOEnable(3, true); // the device will begin vibrating
+    M5.Spk.begin(); // the speaker will be activated
+    for (int i=0;i<5; i++){
+      M5.Spk.DingDong(); // the device will play 5 ding dong sounds
+    }
+}
+while (Alarm == 1){ // once the device is in the alarm state 
+  if (M5.BtnA.wasPressed()){ // if button A is pressed add 0 to the pincode2 and print the new pincode
+  PinCode2 =PinCode2+"0";
+  M5.Lcd.drawString(PinCode2, 120,120);
+
+}
+
+if (M5.BtnB.wasPressed()){ // if button B is pressed add 1 to the pincode2 and print the new pincode
+  PinCode2 =PinCode2+"1";
+  M5.Lcd.drawString(PinCode2, 120,120);
+}
+  if (M5.BtnC.wasPressed()){ // if button C is pressed add 2 to the pincode2 and print the new pincode
+  PinCode2 =PinCode2+"2";
+  M5.Lcd.drawString(PinCode2, 120,120);
+  }
+ M5.update(); // update the button inputs
+  if (PinCode == PinCode2){ // if the set pincode is the same as the entered pincode the following will happen
+    M5.Axp.SetLDOEnable(3, false); // the vibrations will stop
+    M5.Lcd.fillScreen(BLACK); // the screen will become black again
+    PinCode2 =""; // the entered pincode will be reset
+    PinCodeCtr=0; // the pincode counter will reset
+    while (M5.BtnA.wasPressed() ==0 && M5.BtnB.wasPressed()==0 && M5.BtnC.wasPressed()==0 ){ // the device will enter a state where the m5stack is unarmed and it can only leave that state when any button is pressed
+      M5.Lcd.setTextSize(2);
+      M5.Lcd.drawString("Press Any Button To Turn", 15, 20); // display a message informing the user that they can press any button to turn the alarm system back on
+      M5.Lcd.drawString("The Alarm System On", 50, 40);
+      Alarm=0; // turn off the alarm
+      M5.update();
+    }
+    PinCode2="";
+    M5.Lcd.fillScreen(BLACK);
+    M5.update(); 
+  }
+if (PinCode2.length() == 4){ // if the user enters 4 digits into the pincode and it is not the same as the set pincode (the code above would have ran if it was the same)
+  M5.Lcd.fillScreen(RED); // the pincode would be cleared and stay in the red alarm state
+    M5.Lcd.drawString("Alarm on", 90, 20);
+  if (PinCode != PinCode2){ // if it is not equal to the pincode
+    PinCodeCtr++; // the pincode counter will be increased
+  PinCode2 =""; // the pincode will be reset
+  }
+}
+if (M5.BtnA.wasPressed()){ // if button A is pressed add 0 to the pincode2 and print the new pincode
+  PinCode2 =PinCode2+"0";
+  M5.Lcd.drawString(PinCode2, 120,120);
+}
+
+if (M5.BtnB.wasPressed()){ // if button B is pressed add 1 to the pincode2 and print the new pincode
+  PinCode2 =PinCode2+"1";
+  M5.Lcd.drawString(PinCode2, 120,120);
+}
+  if (M5.BtnC.wasPressed()){ // if button C is pressed add 2 to the pincode2 and print the new pincode
+  PinCode2 =PinCode2+"2";
+  M5.Lcd.drawString(PinCode2, 120,120);
+  }
+ M5.update(); // Update the button inputs
+  if (PinCode == PinCode2){ // if set pincode is equal to inputted pincode
+    M5.Lcd.fillScreen(BLACK); // "clear" the screen
+    PinCode2 =""; // reset pincode
+    PinCodeCtr=0; // reset pincode counter
+    while (M5.BtnA.wasPressed() ==0 && M5.BtnB.wasPressed()==0 && M5.BtnC.wasPressed()==0 ){ // enter the unarmed state again
+      M5.Lcd.setTextSize(2);
+      M5.Lcd.drawString("Press Any Button To Turn", 15, 20);
+      M5.Lcd.drawString("The Alarm System On", 50, 40);
+      Alarm=0;
+      M5.update();
+    }
+    PinCode2="";
+    M5.Lcd.fillScreen(BLACK);
+    M5.update();
+  }
+  if (PinCode2.length() == 4){ // if the pincode reached 4 digits
+  M5.Lcd.fillScreen(BLACK);  // "clear" the screen
+  if (PinCode != PinCode2){ // if the inputted pincode is not equal to the set pincode 
+    PinCodeCtr++; // increase the pincode counter by one
+  }
+  PinCode2 =""; // reset the pincode
+  }
+   if (PinCodeCtr == 3){ // if the pincode counter reaches 3 (3 wrong attempts)
+    Alarm=1; // turn the alarm on
+  }
+}
+ 
